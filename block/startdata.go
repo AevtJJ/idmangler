@@ -67,5 +67,7 @@ func DecodeStartBytes(bytes []byte) (*StartData, int, error) {
 
 // NewStartData creates a new StartData block with the specified version
 func NewStartData(version types.EncodingVersion) *StartData {
-	return &StartData{Version: version}
+	return &StartData{
+		Version: version,
+	}
 }

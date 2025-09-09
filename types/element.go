@@ -18,6 +18,8 @@ const (
 	Fire
 	// Air element
 	Air
+	// Blood element (special element)
+	Blood
 )
 
 // String returns the string representation of an Element
@@ -33,6 +35,8 @@ func (e Element) String() string {
 		return "Fire"
 	case Air:
 		return "Air"
+	case Blood:
+		return "Blood"
 	default:
 		return fmt.Sprintf("Unknown(%d)", e)
 	}
@@ -54,4 +58,12 @@ func ElementFromByte(b byte) (Element, error) {
 		return Element(b), nil
 	}
 	return 0, &BadElementError{ID: b}
+}
+
+// ElementFromID converts a byte to an Element or returns an error if invalid
+func ElementFromID(id byte) (Element, error) {
+	if id <= byte(Blood) {
+		return Element(id), nil
+	}
+	return 0, &BadElementError{ID: id}
 }

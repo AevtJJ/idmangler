@@ -69,5 +69,7 @@ func (n *NameData) DecodeData(bytes []byte, ver types.EncodingVersion) (int, err
 
 // NewNameData creates a new NameData block with the specified name
 func NewNameData(name string) *NameData {
-	return &NameData{Name: name}
+	return &NameData{
+		Name: name,
+	}
 }

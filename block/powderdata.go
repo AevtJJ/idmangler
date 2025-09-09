@@ -152,7 +152,7 @@ func (p *PowderData) DecodeData(bytes []byte, ver types.EncodingVersion) (int, e
 	return bytesUsed, nil
 }
 
-// NewPowderData creates a new PowderData block with the specified powder slots and powders
+// NewPowderData creates a new PowderData block with the specified slots and powders
 func NewPowderData(powderSlots byte, powders []types.Powder) *PowderData {
 	return &PowderData{
 		PowderSlots: powderSlots,

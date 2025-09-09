@@ -4,174 +4,125 @@ import (
 	"fmt"
 )
 
-// DataBlockID represents the type of data block (will be fully defined in the block package)
-type DataBlockID byte
-
-// EncodeError represents errors that can occur during encoding
-type EncodeError struct {
-	Type    EncodeErrorType
-	Details string
-}
-
-// EncodeErrorType identifies the type of encoding error that occurred
-type EncodeErrorType int
-
+// Error types
 const (
-	// ErrNoStartBlock indicates no start data block was found when encoding
-	ErrNoStartBlock EncodeErrorType = iota
-	// ErrNonAsciiString indicates encoder was given a string with non-ASCII characters
-	ErrNonAsciiString
-	// ErrTooManyIdentifications indicates more than 255 identifications were passed for encoding
+	// ErrUnexpectedEndOfBytes indicates that the byte array ended unexpectedly
+	ErrUnexpectedEndOfBytes = iota
+	// ErrStartReparse indicates that a start block was encountered during reparsing
+	ErrStartReparse
+	// ErrUnknownBlock indicates that an unknown block ID was encountered
+	ErrUnknownBlock
+	// ErrNoBasevalueGiven indicates that no base value was provided for a stat
+	ErrNoBasevalueGiven
+	// ErrTooManyIdentifications indicates that there are too many identifications
 	ErrTooManyIdentifications
-	// ErrNoBaseValueGiven indicates identification is missing a base value while using extended encoding
-	ErrNoBaseValueGiven
-	// ErrTooManyPowders indicates more than 255 powders were passed for encoding
+	// ErrNoTypeGiven indicates that no item type was given
+	ErrNoTypeGiven
+	// ErrNoNameGiven indicates that no name was given
+	ErrNoNameGiven
+	// ErrInvalidVarInt indicates a problem with VarInt encoding/decoding
+	ErrInvalidVarInt
+	// ErrNoStartBlockFound indicates that no start block was found when expected
+	ErrNoStartBlockFound
+	// ErrUnknownVersion indicates an unknown encoding version
+	ErrUnknownVersion
+	// ErrBadItemType indicates an invalid item type
+	ErrBadItemType
+	// ErrNonAsciiString indicates that a string contains non-ASCII characters
+	ErrNonAsciiString
+	// ErrTooManyPowders indicates that there are too many powders
 	ErrTooManyPowders
-	// ErrEffectStrengthTooHigh indicates effect strength should be a percentage between 0 and 100
-	ErrEffectStrengthTooHigh
-	// ErrTooManySkills indicates more than 255 skills were passed for encoding
-	ErrTooManySkills
-	// ErrTooManyDamageValues indicates more than 255 damage values were passed for encoding
-	ErrTooManyDamageValues
-	// ErrTooManyEffects indicates more than 255 effects were passed for encoding
-	ErrTooManyEffects
-	// ErrTooManyDefenses indicates more than 255 defense values were passed for encoding
-	ErrTooManyDefenses
+	// ErrBadElement indicates an invalid element type
+	ErrBadElement
+	// ErrBadPowderTier indicates an invalid powder tier
+	ErrBadPowderTier
 )
 
-// Error returns the error message for an EncodeError
+// DataBlockID is used for error reporting
+type DataBlockID byte
+
+// Encode errors
+// EncodeErrorType represents the type of an encoding error
+type EncodeErrorType int
+
+// EncodeError represents an error that occurred during encoding
+type EncodeError struct {
+	Type    EncodeErrorType
+	Details interface{}
+}
+
+// Error returns the error message for an encoding error
 func (e *EncodeError) Error() string {
 	switch e.Type {
-	case ErrNoStartBlock:
-		return "No start data block found"
-	case ErrNonAsciiString:
-		return "Cannot encode non ASCII string"
+	case ErrNoTypeGiven:
+		return "No type given while encoding TypeData"
+	case ErrNoNameGiven:
+		return "No name given while encoding NameData"
+	case ErrNoBasevalueGiven:
+		return fmt.Sprintf("No base value given for stat with kind %v", e.Details)
 	case ErrTooManyIdentifications:
-		return "Cannot encode more than 255 identifications per item"
-	case ErrNoBaseValueGiven:
-		return fmt.Sprintf("Identification id: %s was not given a base value while using extended encoding", e.Details)
+		return "Too many identifications (maximum is 255)"
+	case ErrNonAsciiString:
+		return "String contains non-ASCII characters"
 	case ErrTooManyPowders:
-		return "Cannot encode more than 255 powders per item"
-	case ErrEffectStrengthTooHigh:
-		return fmt.Sprintf("Effect strength of %s is too high, it should be a percentage between 0 and 100", e.Details)
-	case ErrTooManySkills:
-		return "Cannot encode more than 255 skills per item"
-	case ErrTooManyDamageValues:
-		return "Cannot encode more than 255 damage values per item"
-	case ErrTooManyEffects:
-		return "Cannot encode more than 255 effects per item"
-	case ErrTooManyDefenses:
-		return "Cannot encode more than 255 defenses per item"
+		return "Too many powders (maximum is 6)"
+	case ErrBadElement:
+		return fmt.Sprintf("Invalid element: %v", e.Details)
+	case ErrBadPowderTier:
+		return fmt.Sprintf("Invalid powder tier: %v", e.Details)
+	case ErrBadItemType:
+		return fmt.Sprintf("Invalid item type: %v", e.Details)
 	default:
-		return "Unknown encoding error"
+		return fmt.Sprintf("Unknown encoding error: %d", e.Type)
 	}
 }
 
-// EncoderError provides context about which block caused an encoding error
-type EncoderError struct {
-	ErrorData *EncodeError
-	During    DataBlockID
-}
-
-// Error returns the error message for an EncoderError
-func (e *EncoderError) Error() string {
-	return fmt.Sprintf("%s While encoding block %d", e.Error(), e.During)
-}
-
-// DecodeErrorType identifies the type of decoding error
+// Decode errors
+// DecodeErrorType represents the type of a decoding error
 type DecodeErrorType int
 
-const (
-	// ErrNoStartBlockFound indicates the ID string doesn't start with a valid start block
-	ErrNoStartBlockFound DecodeErrorType = iota
-	// ErrUnknownVersion indicates encoding of an unknown potentially future version was hit
-	ErrUnknownVersion
-	// ErrStartReparse indicates decoder found a second start block in the data
-	ErrStartReparse
-	// ErrUnknownBlock indicates decoder hit an unknown block it could not decode
-	ErrUnknownBlock
-	// ErrBadString indicates an invalid non-ascii/utf-8 string was decoded
-	ErrBadString
-	// ErrBadItemType indicates an invalid item type was found
-	ErrBadItemType
-	// ErrBadGearType indicates an invalid gear type was found
-	ErrBadGearType
-	// ErrBadClassType indicates an invalid class type was encountered
-	ErrBadClassType
-	// ErrBadSkillType indicates an invalid skill type was encountered
-	ErrBadSkillType
-	// ErrBadAttackSpeed indicates an invalid attack speed was encountered
-	ErrBadAttackSpeed
-	// ErrBadElement indicates an invalid element ID was encountered
-	ErrBadElement
-	// ErrBadPowderTier indicates an invalid powder tier was encountered
-	ErrBadPowderTier
-	// ErrBadConsumableType indicates an invalid consumable type was encountered
-	ErrBadConsumableType
-	// ErrBadEffectType indicates an invalid effect type was encountered
-	ErrBadEffectType
-	// ErrUnexpectedEndOfBytes indicates the decoder ran out of bytes to decode
-	ErrUnexpectedEndOfBytes
-	// ErrBadCodepoint indicates the decoder hit an invalid codepoint
-	ErrBadCodepoint
-)
-
-// DecodeError represents errors that can occur during decoding
+// DecodeError represents an error that occurred during decoding
 type DecodeError struct {
 	Type    DecodeErrorType
 	Details interface{}
 }
 
-// Error returns the error message for a DecodeError
+// Error returns the error message for a decoding error
 func (e *DecodeError) Error() string {
 	switch e.Type {
+	case ErrUnexpectedEndOfBytes:
+		return "Unexpected end of bytes"
+	case ErrStartReparse:
+		return "Start block encountered during reparsing"
+	case ErrUnknownBlock:
+		return fmt.Sprintf("Unknown block: %v", e.Details)
+	case ErrInvalidVarInt:
+		return fmt.Sprintf("Invalid VarInt: %v", e.Details)
 	case ErrNoStartBlockFound:
 		return "No start block found"
 	case ErrUnknownVersion:
 		return fmt.Sprintf("Unknown version: %v", e.Details)
-	case ErrStartReparse:
-		return "Second start block found in data"
-	case ErrUnknownBlock:
-		return fmt.Sprintf("Unknown block ID: %v", e.Details)
-	case ErrBadString:
-		return "Decoder decoded a bad string"
 	case ErrBadItemType:
-		return fmt.Sprintf("Invalid item type id: %v", e.Details)
-	case ErrBadGearType:
-		return fmt.Sprintf("Invalid gear type id: %v", e.Details)
-	case ErrBadClassType:
-		return fmt.Sprintf("Invalid class type id: %v", e.Details)
-	case ErrBadSkillType:
-		return fmt.Sprintf("Invalid skill type id: %v", e.Details)
-	case ErrBadAttackSpeed:
-		return fmt.Sprintf("Invalid attack speed id: %v", e.Details)
+		return fmt.Sprintf("Invalid item type: %v", e.Details)
 	case ErrBadElement:
-		return fmt.Sprintf("Invalid element id: %v", e.Details)
+		return fmt.Sprintf("Invalid element: %v", e.Details)
 	case ErrBadPowderTier:
 		return fmt.Sprintf("Invalid powder tier: %v", e.Details)
-	case ErrBadConsumableType:
-		return fmt.Sprintf("Invalid consumable type id: %v", e.Details)
-	case ErrBadEffectType:
-		return fmt.Sprintf("Invalid effect type: %v", e.Details)
-	case ErrUnexpectedEndOfBytes:
-		return "Unexpectedly hit end of bytestream while decoding"
-	case ErrBadCodepoint:
-		return fmt.Sprintf("Bad codepoint: %v", e.Details)
 	default:
-		return "Unknown decoding error"
+		return fmt.Sprintf("Unknown decoding error: %d", e.Type)
 	}
 }
 
-// DecoderError provides context about which block caused a decoding error
+// DecoderError wraps a decode error with context about which block was being decoded
 type DecoderError struct {
 	ErrorData *DecodeError
-	During    *DataBlockID // Optional: may be nil if block is unknown
+	During    *DataBlockID
 }
 
-// Error returns the error message for a DecoderError
+// Error returns the error message for a decoder error
 func (e *DecoderError) Error() string {
-	if e.During == nil {
-		return fmt.Sprintf("Error while decoding unknown block. Type: %v, %v", e.ErrorData.Type, e.ErrorData.Details)
+	if e.During != nil {
+		return fmt.Sprintf("Error while decoding block %d: %s", *e.During, e.ErrorData.Error())
 	}
-	return fmt.Sprintf("Error while decoding block %d. Type: %v, %v", *e.During, e.ErrorData.Type, e.ErrorData.Details)
+	return e.ErrorData.Error()
 }

@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"idmangler/idmangler"
+	"github.com/AevtJJ/idmangler"
 )
 
 func main() {

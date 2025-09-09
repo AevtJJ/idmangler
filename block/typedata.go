@@ -54,5 +54,7 @@ func (t *TypeData) DecodeData(bytes []byte, ver types.EncodingVersion) (int, err
 
 // NewTypeData creates a new TypeData block with the specified item type
 func NewTypeData(itemType types.ItemType) *TypeData {
-	return &TypeData{ItemType: itemType}
+	return &TypeData{
+		ItemType: itemType,
+	}
 }

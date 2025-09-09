@@ -1,18 +1,16 @@
 package types
 
-import (
-	"fmt"
-)
+import "fmt"
 
-// EncodingVersion represents the version of the encoding being used
+// EncodingVersion represents the version of the encoding format
 type EncodingVersion byte
 
 const (
-	// Version1 represents version 1 of the wynntils encoding scheme
-	Version1 EncodingVersion = iota
+	// Version1 is the initial encoding version used in Wynntils
+	Version1 EncodingVersion = 1
 )
 
-// String returns the string representation of an EncodingVersion
+// String returns a string representation of the encoding version
 func (v EncodingVersion) String() string {
 	switch v {
 	case Version1:
@@ -22,20 +20,12 @@ func (v EncodingVersion) String() string {
 	}
 }
 
-// UnknownEncodingVersionError represents an error for an unknown encoding version
-type UnknownEncodingVersionError struct {
-	Version byte
-}
-
-// Error returns the error message for an unknown encoding version
-func (e UnknownEncodingVersionError) Error() string {
-	return fmt.Sprintf("Unknown encoding version: %d", e.Version)
-}
-
 // EncodingVersionFromByte converts a byte to an EncodingVersion or returns an error if invalid
 func EncodingVersionFromByte(b byte) (EncodingVersion, error) {
-	if b == byte(Version1) {
+	switch b {
+	case 1, 0:
 		return Version1, nil
+	default:
+		return 0, fmt.Errorf("unknown encoding version: %d", b)
 	}
-	return 0, &UnknownEncodingVersionError{Version: b}
 }

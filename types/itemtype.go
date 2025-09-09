@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	"strings"
 )
 
 // ItemType represents the different types of items
@@ -35,6 +36,24 @@ func (i ItemType) String() string {
 		return "CraftedConsu"
 	default:
 		return fmt.Sprintf("Unknown(%d)", i)
+	}
+}
+
+// ItemTypeFromString converts a string to an ItemType
+func ItemTypeFromString(s string) ItemType {
+	switch strings.ToLower(s) {
+	case "gear":
+		return Gear
+	case "tome":
+		return Tome
+	case "charm":
+		return Charm
+	case "craftedgear":
+		return CraftedGear
+	case "craftedconsu":
+		return CraftedConsu
+	default:
+		return Gear // Default to Gear if unknown
 	}
 }
 

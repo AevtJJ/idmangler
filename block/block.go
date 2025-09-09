@@ -186,6 +186,18 @@ func DecodeBlock(ver types.EncodingVersion, bytes []byte) (AnyBlock, int, error)
 		block = nameData
 		blockBytesUsed = n
 
+	case BlockIdentificationData:
+		identData := &IdentificationData{}
+		n, err := identData.DecodeData(remainingBytes, ver)
+		if err != nil {
+			return nil, 0, &encoding.DecoderError{
+				ErrorData: err.(*encoding.DecodeError),
+				During:    (*encoding.DataBlockID)(&id),
+			}
+		}
+		block = identData
+		blockBytesUsed = n
+
 	case BlockPowderData:
 		powderData := &PowderData{}
 		n, err := powderData.DecodeData(remainingBytes, ver)
@@ -196,6 +208,18 @@ func DecodeBlock(ver types.EncodingVersion, bytes []byte) (AnyBlock, int, error)
 			}
 		}
 		block = powderData
+		blockBytesUsed = n
+
+	case BlockRerollData:
+		rerollData := &RerollData{}
+		n, err := rerollData.DecodeData(remainingBytes, ver)
+		if err != nil {
+			return nil, 0, &encoding.DecoderError{
+				ErrorData: err.(*encoding.DecodeError),
+				During:    (*encoding.DataBlockID)(&id),
+			}
+		}
+		block = rerollData
 		blockBytesUsed = n
 
 	case BlockShinyData:
